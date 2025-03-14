@@ -1,9 +1,9 @@
 import express from "express";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import { UserModel } from "./db";
-
-const JWT_PASSWORD = "!123123";
+import { ContentModel, UserModel } from "./db";
+import {JWT_PASSWORD} from "./config"
+import { userMiddleware } from "./middleware";
 
 const app = express();
 app.use(express.json());
@@ -37,23 +37,78 @@ app.post("/api/v1/signin", async (req, res) => {
     password,
   });
   if (existingUser) {
-    const Token = jwt.sign(
+    const token = jwt.sign(
       {
         id: existingUser._id, // the user id in inlcuded the inside the token
       },
       JWT_PASSWORD   //secret key to sign 
     );
+    res.json({
+        token
+      
+    })
+  }
+  else{
+    res.json(403).json({
+        message :"Incorrect Credentials"
+    })
   }
 });
-// app.post("/api/v1/content",(req,res) => {
+//@ts-ignore
+app.post("/api/v1/content", userMiddleware , async (req,res) => {
 
-// })
-// app.get("/api/v1/content",(req,res) => {
 
-// })
-// app.delete("api/v1/content",(req,res) => {
+    const link = req.body.link
+    const title = req.body.title
+    const type = req.body.type
 
-// })
+    // const tag = req.body.tag
+    
+
+    await ContentModel.create({
+        link,
+        type,
+        title,
+
+        //@ts-ignore
+        userId:req.userId,
+        tag:[]
+    })
+
+    return res.json({
+        message:"Content added"
+    })
+
+})
+
+
+
+app.get("/api/v1/content",userMiddleware,async(req,res) => {
+    // @ts-ignore
+    const userId = req.userId;
+    const content = await ContentModel.find({
+        userId:userId
+    }).populate("userId","username")
+
+
+})
+
+
+
+
+
+app.delete("/api/v1/content", userMiddleware, async (req, res) => {
+    const contentId = req.body.contentId;
+
+    await ContentModel.deleteMany({
+        contentId,
+        userId: req.userId
+    })
+
+    res.json({
+        message: "Deleted"
+    })
+})
 // app.get("api/v1/brain/:shareLink" ,(req,res) => {
 
 // })
