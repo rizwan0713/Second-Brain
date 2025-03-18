@@ -11,8 +11,7 @@ export const userMiddleware = (req:Request, res:Response, next:NextFunction  ) =
 //  console.log("this is decoded id means existing user id token or header" ,decoded.id)
 
  if(decoded){
-    //@ts-ignore
-    req.userId = decoded.id;
+    req.userId = (decoded as JwtPayload).id
     next()
  }
  else{

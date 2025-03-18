@@ -1,3 +1,13 @@
+declare global {
+  namespace Express {
+    export interface Request {
+      userId?:string;
+    }
+  }
+}
+
+
+
 import express from "express";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
@@ -70,7 +80,6 @@ app.post("/api/v1/content", userMiddleware , async (req,res) => {
         type,
         title,
 
-        //@ts-ignore
         userId:req.userId,
         tag:[]
     })
@@ -102,7 +111,7 @@ app.delete("/api/v1/content", userMiddleware, async (req, res) => {
 
     await ContentModel.deleteMany({
         contentId,
-        userId: req.
+        userId: req
     })
 
     res.json({
