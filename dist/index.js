@@ -96,9 +96,10 @@ app.delete("/api/v1/content", middleware_1.userMiddleware, (req, res) => __await
         message: "Deleted"
     });
 }));
-app.post("api/v1/brain/share", middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post("/api/v1/brain/share", middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const share = req.body.share;
     if (share) {
+        console.log("here");
         yield db_1.LinkModel.create({
             userId: req.userId,
             hash: (0, utils_1.random)(10)
