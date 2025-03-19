@@ -17,6 +17,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const db_1 = require("./db");
 const config_1 = require("./config");
 const middleware_1 = require("./middleware");
+const utils_1 = require("./utils");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.post("/api/v1/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -47,7 +48,7 @@ app.post("/api/v1/signin", (req, res) => __awaiter(void 0, void 0, void 0, funct
     });
     if (existingUser) {
         const token = jsonwebtoken_1.default.sign({
-            id: existingUser._id, // the user id in inlcuded the inside the token
+            id: existingUser._id // the user id in inlcuded the inside the token (payload)
         }, config_1.JWT_PASSWORD //secret key to sign 
         );
         res.json({
@@ -60,7 +61,6 @@ app.post("/api/v1/signin", (req, res) => __awaiter(void 0, void 0, void 0, funct
         });
     }
 }));
-//@ts-ignore
 app.post("/api/v1/content", middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const link = req.body.link;
     const title = req.body.title;
@@ -70,31 +70,70 @@ app.post("/api/v1/content", middleware_1.userMiddleware, (req, res) => __awaiter
         link,
         type,
         title,
-        //@ts-ignore
         userId: req.userId,
         tag: []
     });
-    return res.json({
+    res.json({
         message: "Content added"
     });
 }));
 app.get("/api/v1/content", middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // @ts-ignore
     const userId = req.userId;
     const content = yield db_1.ContentModel.find({
         userId: userId
     }).populate("userId", "username");
+    res.json({
+        content
+    });
 }));
 app.delete("/api/v1/content", middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const contentId = req.body.contentId;
     yield db_1.ContentModel.deleteMany({
         contentId,
-        userId: req.
+        userId: req.userId
     });
     res.json({
         message: "Deleted"
     });
 }));
-// app.get("api/v1/brain/:shareLink" ,(req,res) => {
-// })
+app.post("api/v1/brain/share", middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const share = req.body.share;
+    if (share) {
+        yield db_1.LinkModel.create({
+            userId: req.userId,
+            hash: (0, utils_1.random)(10)
+        });
+    }
+    else {
+        yield db_1.LinkModel.deleteOne({
+            userId: req.userId
+        });
+    }
+    res.json({
+        mesaage: "Updated Sharable Link"
+    });
+}));
+app.get("api/v1/brain/:shareLink", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const hash = req.params.shareLink;
+    const link = yield db_1.LinkModel.findOne({
+        hash
+    });
+    if (!link) {
+        res.status(411).json({
+            message: "Sorry incorrect input"
+        });
+        return;
+    }
+    //userID
+    const content = yield db_1.ContentModel.find({
+        userId: link === null || link === void 0 ? void 0 : link.userId
+    });
+    const user = yield db_1.UserModel.findOne({
+        userId: link.userId
+    });
+    res.json({
+        username: user === null || user === void 0 ? void 0 : user.username,
+        content: content
+    });
+}));
 app.listen(3000);

@@ -13,7 +13,6 @@ const userMiddleware = (req, res, next) => {
     //  console.log("this is decoded token or header" ,decoded)
     //  console.log("this is decoded id means existing user id token or header" ,decoded.id)
     if (decoded) {
-        //@ts-ignore
         req.userId = decoded.id;
         next();
     }
