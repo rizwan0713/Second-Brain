@@ -16,7 +16,7 @@ export const userMiddleware = (req:Request, res:Response, next:NextFunction  ) =
  }
  else{
     res.status(403).json({
-        message:"you rea not logged in"
+        message:"you are not logged in "
     })
  }
 
