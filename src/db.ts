@@ -1,5 +1,5 @@
 import mongoose, { Model, model, Schema } from "mongoose";
-
+//mongoURI
 mongoose.connect("mongodb://localhost:27017/secondbrain");
 
 const UserSchema = new Schema({
