@@ -6,36 +6,51 @@ declare global {
   }
 }
 
-import express from "express";
+import express, { Request, Response } from "express";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { ContentModel, LinkModel, UserModel } from "./db";
 import { JWT_PASSWORD } from "./config";
 import { userMiddleware } from "./middleware";
 import { random } from "./utils";
-
+import cors from "cors";
 const app = express();
 app.use(express.json());
+app.use(cors());
+
 
 app.post("/api/v1/signup", async (req, res) => {
   //zod validation and hash passwoprd
   const username = req.body.username;
   const password = req.body.password;
 
-  try {
-    await UserModel.create({
-      username: username,
-      password: password,
-    });
-    res.status(200).json({
-      message: "User signed up",
-    });
-  } catch (error) {
-    res.status(401).json({
-      message: "user already exist",
-    });
+  const ExistingUser = await UserModel.findOne({username});
+  if(ExistingUser){
+    res.status(400).json({
+      message:"User already Existed, please Login"
+    })
   }
+
+    try {
+      await UserModel.create({
+        username: username,
+        password: password,
+      });
+      res.status(201).json({
+        message: "User signed up",
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "user already exist",
+      });
+    }
+  
+
+
 });
+
+
+
 
 app.post("/api/v1/signin", async (req, res) => {
   const username = req.body.username;
@@ -56,7 +71,7 @@ app.post("/api/v1/signin", async (req, res) => {
       token,
     });
   } else {
-    res.json(403).json({
+    res.status(403).json({
       message: "Incorrect Credentials",
     });
   }
@@ -119,7 +134,7 @@ app.post("/api/v1/brain/share", userMiddleware, async (req, res) => {
               })
               return;
           }
-          
+
           const hash = random(10);
           await LinkModel.create({
               userId: req.userId,

@@ -18,7 +18,7 @@ const userMiddleware = (req, res, next) => {
     }
     else {
         res.status(403).json({
-            message: "you rea not logged in"
+            message: "you are not logged in "
         });
     }
 };
